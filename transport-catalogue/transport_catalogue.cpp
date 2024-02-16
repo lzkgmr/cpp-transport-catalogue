@@ -1,16 +1,16 @@
 #include "transport_catalogue.h"
-// не могу придумать, как должны называться пространства имен и где они должны быть. дайте совет пожалуйста
-void TransportCatalogue::AddStop(std::string name, Coordinates coordinates) {
+
+void TransportCatalogue::AddStop(std::string&& name, Coordinates coordinates) {
     Stop stop;
-    stop.name = std::move(name);
+    stop.name = name;
     stop.cordinates = coordinates;
     stops_.push_back(stop);
     stopname_to_stop[stops_.back().name] = &stops_.back();
 }
 
-void TransportCatalogue::AddBus(std::string name, std::vector <std::string_view> stops) {
+void TransportCatalogue::AddBus(std::string&& name, const std::vector<std::string_view>& stops) {
     Bus bus;
-    bus.name = std::move(name);
+    bus.name = name;
     std::vector<const Stop*> stops_ptr;
     stops_ptr.reserve(stops.size());
     int amount = 0;
@@ -59,5 +59,10 @@ void TransportCatalogue::FindStopInfo(std::string_view name, std::set<std::strin
 
 size_t TransportCatalogue::StrHasher::operator()(const std::string_view& name) const {
     std::string id(name);
+    return hasher_(id);
+}
+
+size_t TransportCatalogue::PtrHasher::operator()(const Bus* bus) const {
+    std::string id(bus->name);
     return hasher_(id);
 }
