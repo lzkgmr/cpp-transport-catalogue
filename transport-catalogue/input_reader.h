@@ -5,7 +5,7 @@
 
 #include "geo.h"
 #include "transport_catalogue.h"
-// не могу придумать, как должны называться пространства имен и где они должны быть. дайте совет пожалуйста
+
 struct CommandDescription {
     // Определяет, задана ли команда (поле command непустое)
     explicit operator bool() const {
@@ -20,6 +20,8 @@ struct CommandDescription {
     std::string id;           // id маршрута или остановки
     std::string description;  // Параметры команды
 };
+
+void RunInput(TransportCatalogue& catalogue);
 
 class InputReader {
 public:
