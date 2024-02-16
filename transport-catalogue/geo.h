@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-
+// не могу придумать, как должны называться пространства имен и где они должны быть. дайте совет пожалуйста
 struct Coordinates {
     double lat;
     double lng;
