@@ -12,6 +12,7 @@
 #include <set>
 #include <stdexcept>
 #include <map>
+#include <cassert>
 
 #include "geo.h"
 
@@ -33,20 +34,22 @@ struct Bus {
 
 class TransportCatalogue {
 public:
-  void AddStop(std::string name, Coordinates coordinates);
+  void AddStop(std::string&& name, Coordinates coordinates);
 
   bool FindStop(std::string_view name) const;
 
-  void FindStopInfo(std::string_view name, std::set<std::string>& buses) const;
+  std::set<std::string> GetBusesWithStop(std::string_view name) const;
 
   void AddBus(std::string&& name, const std::vector<std::string_view>& stops);
 
   Bus FindBus(std::string_view name) const;
 
-  void SetDistance(std::string_view stop, const std::map<std::string, int>& distances);
+  void SetDistances(std::string_view stop, const std::unordered_map<std::string, int>& distances);
 
 private:
   void SetBusLength(Bus* bus);
+
+  void SetDistance(const Stop* stop_from, std::string_view stop_to, int distance);
 
   class StrHasher {
   public:
