@@ -1,6 +1,6 @@
 #include "transport_catalogue.h"
 
-void TransportCatalogue::AddStop(std::string name, Coordinates coordinates) {
+void TransportCatalogue::AddStop(std::string&& name, Coordinates coordinates) {
   Stop stop;
   stop.name = std::move(name);
   stop.cordinates = coordinates;
@@ -29,21 +29,16 @@ void TransportCatalogue::AddBus(std::string &&name, const std::vector<std::strin
   }
   stops_ptr.resize(amount);
   bus.stops = std::move(stops_ptr);
-  SetBusLength(&bus);
+  for (int i = 0; i < bus.stops.size() - 1; ++i) {
+    if (stops_to_distances.count({bus.stops[i], bus.stops[i + 1]})) {
+      bus.route_length += stops_to_distances.at({bus.stops[i], bus.stops[i + 1]});
+    } else if (stops_to_distances.count({bus.stops[i + 1], bus.stops[i]})) {
+      bus.route_length += stops_to_distances.at({bus.stops[i + 1], bus.stops[i]});
+    }
+  }
   bus.curvature = bus.route_length / bus.geo_distance;
   buses_.push_back(bus);
   busname_to_bus[buses_.back().name] = &buses_.back();
-}
-
-void TransportCatalogue::SetBusLength(Bus* bus) {
-  auto stops = bus->stops;
-  for (int i = 0; i < stops.size() - 1; ++i) {
-    if (stops_to_distances.count({stops[i], stops[i + 1]})) {
-      bus->route_length += stops_to_distances.at({stops[i], stops[i + 1]});
-    } else if (stops_to_distances.count({stops[i + 1], stops[i]})) {
-      bus->route_length += stops_to_distances.at({stops[i + 1], stops[i]});
-    }
-  }
 }
 
 Bus TransportCatalogue::FindBus(std::string_view name) const {
@@ -58,29 +53,32 @@ bool TransportCatalogue::FindStop(std::string_view name) const {
   return stopname_to_stop.count(name);
 }
 
-void TransportCatalogue::FindStopInfo(std::string_view name, std::set<std::string> &buses) const {
-  if (stopname_to_stop.count(name) == 0) {
-    std::cerr << "oooops something's broken" << std::endl;
-    return;
-  }
+std::set<std::string> TransportCatalogue::GetBusesWithStop(std::string_view name) const {
+  std::set<std::string> buses;
+  assert(stopname_to_stop.count(name));
   for (const Bus& bus: buses_) {
     if (std::count(bus.stops.begin(), bus.stops.end(), stopname_to_stop.at(name))) {
       buses.insert(bus.name);
     }
   }
+  return buses;
 }
 
-void TransportCatalogue::SetDistance(std::string_view stop, const std::map<std::string, int>& distances) {
+void TransportCatalogue::SetDistances(std::string_view stop, const std::unordered_map<std::string, int>& distances) {
   if (stopname_to_stop.count(stop) == 0) return;
   auto stop_ptr = stopname_to_stop.at(stop);
   if (distances.empty()) {
     return;
   }
   for (const auto& [stop_name, num]: distances) {
-    if (stopname_to_stop.count(stop_name)) {
-      std::pair<const Stop*, const Stop*> p(stop_ptr, stopname_to_stop.at(stop_name));
-      stops_to_distances[p] = num;
-    }
+    SetDistance(stop_ptr, stop_name, num);
+  }
+}
+
+void TransportCatalogue::SetDistance(const Stop* stop_from, std::string_view stop_to, int distance) {
+  if (stopname_to_stop.count(stop_to)) {
+    std::pair<const Stop*, const Stop*> p(stop_from, stopname_to_stop.at(stop_to));
+    stops_to_distances[p] = distance;
   }
 }
 
