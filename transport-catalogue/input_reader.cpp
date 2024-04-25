@@ -73,19 +73,19 @@ std::vector<std::string_view> ParseRoute(std::string_view route) {
   return results;
 }
 
-std::map<std::string, int> ParseDistance(std::string_view line, TransportCatalogue &catalogue) {
-  std::map<std::string, int> result;
+std::unordered_map<std::string, int> ParseDistance(std::string_view line, TransportCatalogue &catalogue) {
+  std::unordered_map<std::string, int> result;
   auto parts = Split(line, ',');
-  for (auto &p: parts) {
-    p = Trim(p);
-    auto space_pos = p.find(' ');
-    if (space_pos == p.npos) return {};
-    auto to_pos = p.find_first_not_of(' ', space_pos);
-    if (to_pos == p.npos) return {};
-    auto after_to_space = p.find_first_not_of(' ', to_pos + 2);
-    if (after_to_space == p.npos) return {};
-    int metres = stoi(std::string(p.substr(0, space_pos - 1)));
-    auto stop = p.substr(after_to_space);
+  for (auto& part: parts) {
+    part = Trim(part);
+    auto space_pos = part.find(' ');
+    if (space_pos == part.npos) return {};
+    auto to_pos = part.find_first_not_of(' ', space_pos);
+    if (to_pos == part.npos) return {};
+    auto after_to_space = part.find_first_not_of(' ', to_pos + 2);
+    if (after_to_space == part.npos) return {};
+    int metres = stoi(std::string(part.substr(0, space_pos - 1)));
+    auto stop = part.substr(after_to_space);
     if (catalogue.FindStop(stop)) {
       result[std::string(stop)] = metres;
     }
@@ -148,14 +148,16 @@ void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue &catalogue) 
   auto commands = commands_;
   std::sort(commands.begin(), commands.end(), CommandComparator);
   int stop_commands = 0;
+  std::deque<std::string> stop_names;
   for (auto &command: commands) {
     if (command.command == "Stop") {
       ++stop_commands;
-      catalogue.AddStop(command.id, ParseCoordinates(command.coordinates));
+      stop_names.push_back(command.id);
+      catalogue.AddStop(std::move(command.id), ParseCoordinates(command.coordinates));
     }
   }
   for (int i = 0; i < stop_commands; ++i) {
-    catalogue.SetDistance(commands[i].id, ParseDistance(commands[i].distances, catalogue));
+    catalogue.SetDistances(stop_names[i], ParseDistance(commands[i].distances, catalogue));
   }
   for (int i = stop_commands; i < commands.size(); ++i) {
     std::vector<std::string_view> stops = ParseRoute(commands[i].coordinates);
