@@ -44,13 +44,9 @@ public:
 
   Bus FindBus(std::string_view name) const;
 
-  void SetDistances(std::string_view stop, const std::unordered_map<std::string, int>& distances);
+  void SetDistance(std::string_view stop_from, std::string_view stop_to, int distance);
 
 private:
-  void SetBusLength(Bus* bus);
-
-  void SetDistance(const Stop* stop_from, std::string_view stop_to, int distance);
-
   class StrHasher {
   public:
     size_t operator()(const std::string_view& name) const;
