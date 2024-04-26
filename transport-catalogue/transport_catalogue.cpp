@@ -64,20 +64,9 @@ std::set<std::string> TransportCatalogue::GetBusesWithStop(std::string_view name
   return buses;
 }
 
-void TransportCatalogue::SetDistances(std::string_view stop, const std::unordered_map<std::string, int>& distances) {
-  if (stopname_to_stop.count(stop) == 0) return;
-  auto stop_ptr = stopname_to_stop.at(stop);
-  if (distances.empty()) {
-    return;
-  }
-  for (const auto& [stop_name, num]: distances) {
-    SetDistance(stop_ptr, stop_name, num);
-  }
-}
-
-void TransportCatalogue::SetDistance(const Stop* stop_from, std::string_view stop_to, int distance) {
+void TransportCatalogue::SetDistance(std::string_view stop_from, std::string_view stop_to, int distance) {
   if (stopname_to_stop.count(stop_to)) {
-    std::pair<const Stop*, const Stop*> p(stop_from, stopname_to_stop.at(stop_to));
+    std::pair<const Stop*, const Stop*> p(stopname_to_stop.at(stop_from), stopname_to_stop.at(stop_to));
     stops_to_distances[p] = distance;
   }
 }
