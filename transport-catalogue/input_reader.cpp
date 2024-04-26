@@ -140,10 +140,6 @@ bool CommandComparator(CommandDescription lhs, CommandDescription rhs) {
   return lhs.command.size() > rhs.command.size();
 }
 
-bool CommandDistanceComparator(CommandDescription lhs, CommandDescription rhs) {
-  return lhs.distances.size() > rhs.distances.size();
-}
-
 void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue &catalogue) const {
   auto commands = commands_;
   std::sort(commands.begin(), commands.end(), CommandComparator);
@@ -157,7 +153,11 @@ void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue &catalogue) 
     }
   }
   for (int i = 0; i < stop_commands; ++i) {
-    catalogue.SetDistances(stop_names[i], ParseDistance(commands[i].distances, catalogue));
+    auto distances = ParseDistance(commands[i].distances, catalogue);
+    if (distances.empty()) continue;
+    for (const auto& [stop_name, num] : distances) {
+      catalogue.SetDistance(stop_names[i], stop_name, num);
+    }
   }
   for (int i = stop_commands; i < commands.size(); ++i) {
     std::vector<std::string_view> stops = ParseRoute(commands[i].coordinates);
