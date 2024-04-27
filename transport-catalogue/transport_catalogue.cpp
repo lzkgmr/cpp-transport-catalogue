@@ -1,8 +1,8 @@
 #include "transport_catalogue.h"
 
-void TransportCatalogue::AddStop(std::string&& name, Coordinates coordinates) {
+void TransportCatalogue::AddStop(const std::string& name, Coordinates coordinates) {
   Stop stop;
-  stop.name = std::move(name);
+  stop.name = name;
   stop.cordinates = coordinates;
   stops_.push_back(stop);
   stopname_to_stop[stops_.back().name] = &stops_.back();
@@ -49,13 +49,22 @@ Bus TransportCatalogue::FindBus(std::string_view name) const {
   return bus;
 }
 
-bool TransportCatalogue::FindStop(std::string_view name) const {
-  return stopname_to_stop.count(name);
+BusStat TransportCatalogue::GetBusStat(std::string_view name) const {
+  if (busname_to_bus.count(name)) {
+    const auto& bus = *(busname_to_bus.at(name));
+    return {bus.name, bus.stops.size(), bus.unique_stops, bus.route_length, bus.curvature};
+  }
+  return {};
+}
+
+const Stop* TransportCatalogue::FindStop(std::string_view name) const {
+  if (stopname_to_stop.count(name) == 0) return nullptr;
+  return stopname_to_stop.at(name);
 }
 
 std::set<std::string> TransportCatalogue::GetBusesWithStop(std::string_view name) const {
   std::set<std::string> buses;
-  assert(stopname_to_stop.count(name));
+  if (stopname_to_stop.count(name) == 0) return {};
   for (const Bus& bus: buses_) {
     if (std::count(bus.stops.begin(), bus.stops.end(), stopname_to_stop.at(name))) {
       buses.insert(bus.name);
