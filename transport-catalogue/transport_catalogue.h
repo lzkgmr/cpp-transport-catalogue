@@ -45,9 +45,9 @@ public:
 
   std::set<std::string> GetBusesWithStop(std::string_view name) const;
 
-  void AddBus(std::string&& name, const std::vector<std::string_view>& stops);
+  void AddBus(const std::string& name, const std::vector<std::string_view>& stops);
 
-  Bus FindBus(std::string_view name) const;
+  const Bus* FindBus(std::string_view name) const;
 
   BusStat GetBusStat(std::string_view name) const;
 
