@@ -8,9 +8,9 @@ void TransportCatalogue::AddStop(const std::string& name, Coordinates coordinate
   stopname_to_stop[stops_.back().name] = &stops_.back();
 }
 
-void TransportCatalogue::AddBus(std::string &&name, const std::vector<std::string_view> &stops) {
+void TransportCatalogue::AddBus(const std::string& name, const std::vector<std::string_view> &stops) {
   Bus bus;
-  bus.name = std::move(name);
+  bus.name = name;
   std::vector<const Stop *> stops_ptr;
   stops_ptr.reserve(stops.size());
   int amount = 0;
@@ -41,12 +41,11 @@ void TransportCatalogue::AddBus(std::string &&name, const std::vector<std::strin
   busname_to_bus[buses_.back().name] = &buses_.back();
 }
 
-Bus TransportCatalogue::FindBus(std::string_view name) const {
-  Bus bus = {};
+const Bus* TransportCatalogue::FindBus(std::string_view name) const {
   if (busname_to_bus.count(name)) {
-    return *(busname_to_bus.at(name));
+    return busname_to_bus.at(name);
   }
-  return bus;
+  return nullptr;
 }
 
 BusStat TransportCatalogue::GetBusStat(std::string_view name) const {
