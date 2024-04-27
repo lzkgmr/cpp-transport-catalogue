@@ -2,11 +2,11 @@
 
 void BusInfo(const TransportCatalogue &transport_catalogue, std::string_view request,
              std::ostream &output) {
-  Bus bus = transport_catalogue.FindBus(request);
+  BusStat bus = transport_catalogue.GetBusStat(request);
   if (bus.name.empty()) {
     output << "Bus " << request << ": not found" << std::endl;
   } else {
-    output << "Bus " << request << ": " << bus.stops.size() << " stops on route, " << bus.unique_stops
+    output << "Bus " << request << ": " << bus.stops_on_route << " stops on route, " << bus.unique_stops
            << " unique stops, "
            << bus.route_length << " route length, " << bus.curvature << " curvature" << std::endl;
   }
@@ -14,7 +14,7 @@ void BusInfo(const TransportCatalogue &transport_catalogue, std::string_view req
 
 void StopInfo(const TransportCatalogue &transport_catalogue, std::string_view request,
               std::ostream &output) {
-  if (!transport_catalogue.FindStop(request)) {
+  if (transport_catalogue.FindStop(request) == nullptr) {
     output << "Stop " << request << ": not found" << std::endl;
     return;
   }
