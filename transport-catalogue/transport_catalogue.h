@@ -10,9 +10,6 @@
 #include <string>
 #include <iostream>
 #include <set>
-#include <stdexcept>
-#include <map>
-#include <cassert>
 
 #include "geo.h"
 
@@ -32,17 +29,27 @@ struct Bus {
   double curvature = 0;
 };
 
+struct BusStat {
+  std::string_view name;
+  size_t stops_on_route;
+  int unique_stops;
+  double route_length;
+  double curvature;
+};
+
 class TransportCatalogue {
 public:
-  void AddStop(std::string&& name, Coordinates coordinates);
+  void AddStop(const std::string& name, Coordinates coordinates);
 
-  bool FindStop(std::string_view name) const;
+  const Stop* FindStop(std::string_view name) const;
 
   std::set<std::string> GetBusesWithStop(std::string_view name) const;
 
   void AddBus(std::string&& name, const std::vector<std::string_view>& stops);
 
   Bus FindBus(std::string_view name) const;
+
+  BusStat GetBusStat(std::string_view name) const;
 
   void SetDistance(std::string_view stop_from, std::string_view stop_to, int distance);
 
