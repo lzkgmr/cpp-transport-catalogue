@@ -149,7 +149,7 @@ void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue &catalogue) 
     if (command.command == "Stop") {
       ++stop_commands;
       stop_names.push_back(command.id);
-      catalogue.AddStop(std::move(command.id), ParseCoordinates(command.coordinates));
+      catalogue.AddStop(command.id, ParseCoordinates(command.coordinates));
     }
   }
   for (int i = 0; i < stop_commands; ++i) {
