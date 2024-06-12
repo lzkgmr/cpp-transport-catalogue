@@ -1,83 +1,71 @@
 #pragma once
 
 #include <deque>
-#include <string_view>
-#include <unordered_map>
-#include <utility>
+#include <string>
 #include <vector>
-#include <string>
-#include <functional>
-#include <string>
-#include <iostream>
+#include <unordered_map>
 #include <set>
-
+#include <cstdint>
 #include "geo.h"
+#include "domain.h"
 
-struct Bus;
-
-struct Stop {
-  std::string name;
-  Coordinates cordinates;
-};
-
-struct Bus {
-  std::string name;
-  std::vector<const Stop*> stops;
-  int unique_stops = 0;
-  double route_length = 0;
-  double geo_distance = 0;
-  double curvature = 0;
-};
-
-struct BusStat {
-  std::string_view name;
-  size_t stops_on_route;
-  int unique_stops;
-  double route_length;
-  double curvature;
-};
-
-class TransportCatalogue {
-public:
-  void AddStop(const std::string& name, Coordinates coordinates);
-
-  const Stop* FindStop(std::string_view name) const;
-
-  std::set<std::string> GetBusesWithStop(std::string_view name) const;
-
-  void AddBus(const std::string& name, const std::vector<std::string_view>& stops);
-
-  const Bus* FindBus(std::string_view name) const;
-
-  BusStat GetBusStat(std::string_view name) const;
-
-  void SetDistance(std::string_view stop_from, std::string_view stop_to, int distance);
-
-private:
-  class StrHasher {
+namespace transport_catalogue {
+  class TransportCatalogue {
   public:
-    size_t operator()(const std::string_view& name) const;
+    void AddStop(const Stop &stop);
+
+    Stop *FindStop(const std::string &name_of_stop);
+
+    void AddBus(const Bus &bus);
+
+    Bus *FindBus(const std::string &name_of_bus);
+
+    BusInfo GetBusInfo(const std::string &name_of_bus);
+
+    StopInfo GetStopInfo(const std::string &name_of_stop);
+
+    std::unordered_map<Stop *, std::set<std::string_view>> &GetStopsToBusesMap();
+
+    std::deque<Bus> &GetBusesDeque();
+
+    const std::deque<Bus> &GetBusesDequeConst() const;
+
+    void SetDistance(int64_t dist, Stop *from, Stop *to);
+
+    int64_t GetDistance(Stop *from, Stop *to) const;
+
+    const std::deque<Bus> &GetAllBuses();
+
+    std::set<std::string_view> &GetUniqueStops();
+
+    size_t GetStopId(std::string_view stop_name) const;
+
+    std::string GetStopFromId(size_t stop_id) const;
+
+    size_t GetStopsCount() const;
+
   private:
-    std::hash<std::string> hasher_;
+    struct StopsHasher {
+      size_t operator()(std::pair<Stop *, Stop *> elem) const {
+        return s_hasher(elem.first) + 37 * s_hasher(elem.second);
+      }
+
+    private:
+      std::hash<Stop *> s_hasher;
+    };
+
+    std::deque<Stop> stops_;
+    std::deque<Bus> buses_;
+    std::set<std::string_view> unique_stops;
+    std::unordered_map<std::string_view, Stop *> stopname_to_stop_;
+    std::unordered_map<std::string_view, Bus *> busname_to_bus_;
+    std::unordered_map<Stop *, std::set<std::string_view>> stopname_to_buses;
+    std::unordered_map<std::string_view, bool> isbusroundtrip;
+    std::unordered_map<std::pair<Stop *, Stop *>, int64_t, StopsHasher> dist_betw_stops_;
+    std::unordered_map<std::string_view, bool> roundtrip_of_buses;
+    std::unordered_map<std::string_view, size_t> stop_name_to_id;
+    std::unordered_map<size_t, std::string> id_to_stopname;
+    size_t stop_count = 0;
   };
 
-  class PtrHasher {
-  public:
-    size_t operator()(std::pair<const Stop*, const Stop*>) const;
-  private:
-    std::hash<const void*> hasher_;
-  };
-
-  class StopHasher {
-  public:
-    size_t operator()(const Stop* stop) const;
-  private:
-    std::hash<const void*> hasher_;
-  };
-
-  std::deque<Stop> stops_;
-  std::deque<Bus> buses_;
-  std::unordered_map<std::string_view, const Stop*, StrHasher> stopname_to_stop;
-  std::unordered_map<std::string_view, const Bus*, StrHasher> busname_to_bus;
-  std::unordered_map<std::pair<const Stop*, const Stop*>, int, PtrHasher> stops_to_distances;
-};
+}

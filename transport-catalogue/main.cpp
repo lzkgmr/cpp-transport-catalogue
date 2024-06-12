@@ -1,12 +1,8 @@
-  #include <iostream>
+#include "json_reader.h"
+#include <iostream>
 
-  #include "input_reader.h"
-  #include "stat_reader.h"
-
-  using namespace std;
-
-  int main() {
-    TransportCatalogue catalogue;
-    RunInput(std::cin, catalogue);
-    RunStat(std::cin, std::cout, catalogue);
-  }
+int main() {
+  using namespace transport_catalogue;
+  TransportCatalogue catal;
+  ProcessRequest(std::cin, std::cout, catal);
+}
